@@ -6,58 +6,17 @@
   <title>SpendSense</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f7fb;
-      color: #1f2937;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: 60px auto;
-      padding: 24px;
-    }
-
-    h1 {
-      color: #2563eb;
-      margin-bottom: 8px;
-    }
-
-    .card {
-      background: white;
-      padding: 24px;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-      margin-top: 24px;
-    }
-
-    input, select, button {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 16px;
-    }
-
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    #message {
-      margin-top: 16px;
-      font-weight: bold;
-    }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f7fb; color: #1f2937; }
+    .container { max-width: 700px; margin: 50px auto; padding: 24px; }
+    h1 { color: #2563eb; margin-bottom: 6px; }
+    .card { background: white; padding: 24px; border-radius: 14px; box-shadow: 0 4px 14px #00000014; margin-top: 20px; }
+    input, select, button { width: 100%; box-sizing: border-box; padding: 12px; margin-top: 12px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 16px; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #1d4ed8; }
+    .total { font-size: 24px; font-weight: bold; color: #15803d; }
+    .expense { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+    .expense button { width: auto; margin: 0; padding: 7px 10px; background: #dc2626; }
+    #message { font-weight: bold; }
   </style>
 </head>
 <body>
@@ -68,6 +27,7 @@
     <section class="card">
       <h2>Add an expense</h2>
 
+      <input id="description" type="text" placeholder="What did you spend on?" />
       <input id="amount" type="number" placeholder="Amount (for example, 150)" />
 
       <select id="category">
@@ -79,26 +39,65 @@
       </select>
 
       <button onclick="addExpense()">Add Expense</button>
-
       <p id="message"></p>
+    </section>
+
+    <section class="card">
+      <h2>Total spent</h2>
+      <p class="total">₹<span id="total">0</span></p>
+
+      <h2>Expenses</h2>
+      <div id="expenseList">No expenses added yet.</div>
     </section>
   </main>
 
   <script>
+    const expenses = [];
+
     function addExpense() {
-      const amount = document.getElementById("amount").value;
+      const description = document.getElementById("description").value.trim();
+      const amount = Number(document.getElementById("amount").value);
       const category = document.getElementById("category").value;
       const message = document.getElementById("message");
 
-      if (amount === "" || Number(amount) <= 0) {
-        message.textContent = "Please enter a valid amount.";
+      if (!description || amount <= 0) {
+        message.textContent = "Please enter an expense name and valid amount.";
         message.style.color = "crimson";
         return;
       }
 
-      message.textContent = `Added ₹${amount} for ${category}.`;
-      message.style.color = "green";
+      expenses.push({ description, amount, category });
+
+      document.getElementById("description").value = "";
       document.getElementById("amount").value = "";
+      message.textContent = "Expense added successfully.";
+      message.style.color = "green";
+
+      renderExpenses();
+    }
+
+    function deleteExpense(index) {
+      expenses.splice(index, 1);
+      renderExpenses();
+    }
+
+    function renderExpenses() {
+      const list = document.getElementById("expenseList");
+      const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+      document.getElementById("total").textContent = total;
+
+      if (expenses.length === 0) {
+        list.textContent = "No expenses added yet.";
+        return;
+      }
+
+      list.innerHTML = expenses.map((expense, index) => `
+        <div class="expense">
+          <span>${expense.description} — ${expense.category}: ₹${expense.amount}</span>
+          <button onclick="deleteExpense(${index})">Delete</button>
+        </div>
+      `).join("");
     }
   </script>
 </body>
